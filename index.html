@@ -52,19 +52,6 @@
             border-bottom: 3px solid #d4af37;
         }
 
-        .header::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #cc0000;
-            mix-blend-mode: hard-light;
-            pointer-events: none;
-            z-index: 0;
-        }
-
         .header::after {
             content: "✦";
             display: block;
@@ -72,8 +59,6 @@
             margin: 10px 0;
             opacity: 0.8;
             letter-spacing: 10px;
-            position: relative;
-            z-index: 1;
         }
 
         .header h1 {
@@ -93,8 +78,6 @@
             margin-left: auto;
             margin-right: auto;
             mix-blend-mode: hard-light;
-            position: relative;
-            z-index: 1;
         }
 
         .header p {
