@@ -277,6 +277,68 @@
             display: block;
         }
 
+        /* Thank You Screen */
+        .thank-you-screen {
+            display: none;
+            text-align: center;
+            padding: 60px 40px;
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        .thank-you-screen.show {
+            display: block;
+        }
+
+        .thank-you-icon {
+            font-size: 80px;
+            color: #d4af37;
+            margin-bottom: 20px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        .thank-you-title {
+            font-size: 36px;
+            color: #722f37;
+            margin-bottom: 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+        }
+
+        .thank-you-message {
+            font-size: 18px;
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .thank-you-subtitle {
+            font-size: 16px;
+            color: #722f37;
+            margin-top: 40px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .form-container.hide-form {
+            display: none;
+        }
+
         @media (max-width: 600px) {
             .form-row {
                 grid-template-columns: 1fr;
@@ -406,9 +468,24 @@
             <p>Connect. Create. Reform.<br>We bridge the gap between culture and commerce, giving creatives a place to converge and transform heritage-inspired ideas into thriving businesses.</p>
         </div>
 
-        <div class="form-container">
+        <div class="form-container" id="formContainer">
             <div class="success-message" id="successMessage">
                 ✦ Welcome to The Royal Circle. Your application has been received with honor.
+            </div>
+
+            <!-- Thank You Screen -->
+            <div class="thank-you-screen" id="thankYouScreen">
+                <div class="thank-you-icon">✨</div>
+                <h2 class="thank-you-title">Thank You for Joining The Royal Circle!</h2>
+                <p class="thank-you-message">
+                    Your application has been received with honor. We're thrilled to have you as part of our community where culture meets commerce, and heritage meets innovation.
+                </p>
+                <p class="thank-you-message">
+                    Our team will review your application and get back to you soon. In the meantime, stay connected with us on social media!
+                </p>
+                <p class="thank-you-subtitle">
+                    Connect. Create. Reform. ✦
+                </p>
             </div>
 
             <form id="communityForm">
@@ -564,6 +641,8 @@
     <script>
         const form = document.getElementById('communityForm');
         const successMessage = document.getElementById('successMessage');
+        const formContainer = document.getElementById('formContainer');
+        const thankYouScreen = document.getElementById('thankYouScreen');
         let currentPage = 1;
         let map;
         let marker;
@@ -789,6 +868,19 @@
             sendToGoogleSheets(formData);
         });
 
+        // Function to show thank you screen
+        function showThankYouScreen() {
+            // Hide form
+            form.style.display = 'none';
+            successMessage.style.display = 'none';
+            
+            // Show thank you screen
+            thankYouScreen.classList.add('show');
+            
+            // Scroll to top smoothly
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         // Function to send data to Google Sheets
         function sendToGoogleSheets(data) {
             fetch(GOOGLE_SCRIPT_URL, {
@@ -798,10 +890,8 @@
             })
             .then(response => {
                 console.log('Data sent successfully');
-                // Show success message
-                successMessage.classList.add('show');
                 
-                // Reset form and go back to page 1
+                // Reset form data
                 form.reset();
                 showPage(1);
                 selectedLocation = null;
@@ -809,25 +899,20 @@
                     map.removeLayer(marker);
                 }
 
-                // Hide success message after 5 seconds
-                setTimeout(() => {
-                    successMessage.classList.remove('show');
-                }, 5000);
+                // Show thank you screen
+                showThankYouScreen();
             })
             .catch(error => {
                 console.error('Error:', error);
                 // Even if there's a fetch error, data was likely sent successfully
-                // Show success message anyway
-                successMessage.classList.add('show');
+                // Show thank you screen anyway
                 form.reset();
                 showPage(1);
                 selectedLocation = null;
                 if (marker && map) {
                     map.removeLayer(marker);
                 }
-                setTimeout(() => {
-                    successMessage.classList.remove('show');
-                }, 5000);
+                showThankYouScreen();
             });
         }
 
