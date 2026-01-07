@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Royal Circle - Heritage & Creative Community</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Montserrat:wght@500&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * {
             margin: 0;
@@ -300,6 +304,99 @@
             font-family: 'Montserrat', sans-serif;
             font-weight: 500;
         }
+
+        /* Page Navigation Styles */
+        .form-page {
+            display: none;
+        }
+
+        .form-page.active {
+            display: block;
+            animation: fadeIn 0.4s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .page-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px 0;
+        }
+
+        .page-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #d4af37;
+            opacity: 0.3;
+            transition: all 0.3s ease;
+        }
+
+        .page-dot.active {
+            opacity: 1;
+            background: #722f37;
+            transform: scale(1.2);
+        }
+
+        .btn-nav {
+            background: #722f37;
+            color: white;
+        }
+
+        .btn-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(114, 47, 55, 0.6);
+        }
+
+        .btn-nav:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Map Container (Leaflet/OpenStreetMap) */
+        #map {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #d4af37;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .map-search-container {
+            margin-bottom: 10px;
+        }
+
+        .map-search-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #d4af37;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+        }
+
+        .location-display {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f8f8;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #666;
+            font-family: 'Montserrat', sans-serif;
+        }
     </style>
 </head>
 <body>
@@ -315,99 +412,150 @@
             </div>
 
             <form id="communityForm">
-                <!-- Name Field -->
-                <div class="form-group">
-                    <label for="name">Full Name <span class="required">*</span></label>
-                    <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+                <!-- Page Indicator -->
+                <div class="page-indicator">
+                    <div class="page-dot active" data-page="1"></div>
+                    <div class="page-dot" data-page="2"></div>
                 </div>
 
-                <!-- Contact and Locality Row -->
-                <div class="form-group">
-                    <div class="form-row">
-                        <div>
-                            <label for="contact">Contact Number <span class="required">*</span></label>
-                            <input type="tel" id="contact" name="contact" placeholder="+91 9876543210" required>
-                            <div class="form-hint">Your phone number</div>
+                <!-- Page 1 -->
+                <div class="form-page active" id="page1">
+                    <!-- Name Field -->
+                    <div class="form-group">
+                        <label for="name">Full Name <span class="required">*</span></label>
+                        <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+                    </div>
+
+                    <!-- Contact and Locality Row -->
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div>
+                                <label for="contact">Contact Number <span class="required">*</span></label>
+                                <input type="tel" id="contact" name="contact" placeholder="+91 9876543210" required>
+                                <div class="form-hint">Your phone number</div>
+                            </div>
+                            <div>
+                                <label for="locality">City / Locality <span class="required">*</span></label>
+                                <input type="text" id="locality" name="locality" placeholder="e.g., Pune, Mumbai" required>
+                            </div>
                         </div>
-                        <div>
-                            <label for="locality">City / Locality <span class="required">*</span></label>
-                            <input type="text" id="locality" name="locality" placeholder="e.g., Pune, Mumbai" required>
+                    </div>
+
+                    <!-- From Jaipur -->
+                    <div class="form-group">
+                        <label>From Jaipur? <span class="required">*</span></label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="radio" id="jaipur-yes" name="fromJaipur" value="Yes" required>
+                                <label for="jaipur-yes">Yes</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="radio" id="jaipur-no" name="fromJaipur" value="No" required>
+                                <label for="jaipur-no">No</label>
+                            </div>
                         </div>
+                    </div>
+
+                    <!-- What you saw in Royal Circle -->
+                    <div class="form-group">
+                        <label for="royalCircle">Your Heritage Connection <span class="required">*</span></label>
+                        <textarea id="royalCircle" name="royalCircle" placeholder="Share what inspired you at Royal Circle - be it cultural, artistic, or entrepreneurial..." required></textarea>
+                        <div class="form-hint">Tell us about your experience or what resonated with you</div>
+                    </div>
+
+                    <!-- Current Projects -->
+                    <div class="form-group">
+                        <label for="projects">Creative Ventures & Projects <span class="required">*</span></label>
+                        <textarea id="projects" name="projects" placeholder="Describe your heritage-inspired projects, collaborations, or innovative ideas..." required></textarea>
+                        <div class="form-hint">Share what you're creating or developing</div>
+                    </div>
+
+                    <!-- What are you into -->
+                    <div class="form-group">
+                        <label>Areas of Expertise <span class="required">*</span></label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="art" name="interests" value="Traditional Art & Crafts">
+                                <label for="art">Traditional Art & Crafts</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="music" name="interests" value="Classical & Folk Music">
+                                <label for="music">Classical & Folk Music</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="tech" name="interests" value="Digital Innovation">
+                                <label for="tech">Digital Innovation</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="business" name="interests" value="Heritage Commerce">
+                                <label for="business">Heritage Commerce</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="culture" name="interests" value="Cultural Studies">
+                                <label for="culture">Cultural Studies</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="photography" name="interests" value="Visual Documentation">
+                                <label for="photography">Visual Documentation</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="writing" name="interests" value="Heritage Writing">
+                                <label for="writing">Heritage Writing</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="entrepreneurship" name="interests" value="Social Entrepreneurship">
+                                <label for="entrepreneurship">Social Entrepreneurship</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Button -->
+                    <div class="button-container">
+                        <button type="button" class="btn-nav" id="nextBtn">Next →</button>
                     </div>
                 </div>
 
-                <!-- From Jaipur -->
-                <div class="form-group">
-                    <label>From Jaipur? <span class="required">*</span></label>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="radio" id="jaipur-yes" name="fromJaipur" value="Yes" required>
-                            <label for="jaipur-yes">Yes</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="radio" id="jaipur-no" name="fromJaipur" value="No" required>
-                            <label for="jaipur-no">No</label>
-                        </div>
+                <!-- Page 2 -->
+                <div class="form-page" id="page2">
+                    <!-- Address Field -->
+                    <div class="form-group">
+                        <label for="address">Address <span class="required">*</span></label>
+                        <textarea id="address" name="address" placeholder="Enter your complete address" required></textarea>
+                        <div class="form-hint">Street address, apartment, suite, etc.</div>
                     </div>
-                </div>
 
-                <!-- What you saw in Royal Circle -->
-                <div class="form-group">
-                    <label for="royalCircle">Your Heritage Connection <span class="required">*</span></label>
-                    <textarea id="royalCircle" name="royalCircle" placeholder="Share what inspired you at Royal Circle - be it cultural, artistic, or entrepreneurial..." required></textarea>
-                    <div class="form-hint">Tell us about your experience or what resonated with you</div>
-                </div>
-
-                <!-- Current Projects -->
-                <div class="form-group">
-                    <label for="projects">Creative Ventures & Projects <span class="required">*</span></label>
-                    <textarea id="projects" name="projects" placeholder="Describe your heritage-inspired projects, collaborations, or innovative ideas..." required></textarea>
-                    <div class="form-hint">Share what you're creating or developing</div>
-                </div>
-
-                <!-- What are you into -->
-                <div class="form-group">
-                    <label>Areas of Expertise <span class="required">*</span></label>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="art" name="interests" value="Traditional Art & Crafts">
-                            <label for="art">Traditional Art & Crafts</label>
+                    <!-- Location with Google Maps -->
+                    <div class="form-group">
+                        <label for="location">Your Location <span class="required">*</span></label>
+                        <div class="map-search-container">
+                            <input type="text" id="locationSearch" class="map-search-input" placeholder="Search for a location or click on the map">
                         </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="music" name="interests" value="Classical & Folk Music">
-                            <label for="music">Classical & Folk Music</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="tech" name="interests" value="Digital Innovation">
-                            <label for="tech">Digital Innovation</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="business" name="interests" value="Heritage Commerce">
-                            <label for="business">Heritage Commerce</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="culture" name="interests" value="Cultural Studies">
-                            <label for="culture">Cultural Studies</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="photography" name="interests" value="Visual Documentation">
-                            <label for="photography">Visual Documentation</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="writing" name="interests" value="Heritage Writing">
-                            <label for="writing">Heritage Writing</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="entrepreneurship" name="interests" value="Social Entrepreneurship">
-                            <label for="entrepreneurship">Social Entrepreneurship</label>
-                        </div>
+                        <div id="map"></div>
+                        <div class="location-display" id="locationDisplay">Click on the map or search to select your location</div>
+                        <input type="hidden" id="location" name="location" required>
+                        <input type="hidden" id="latitude" name="latitude">
+                        <input type="hidden" id="longitude" name="longitude">
                     </div>
-                </div>
 
-                <!-- Buttons -->
-                <div class="button-container">
-                    <button type="submit" class="btn-submit">Join the Circle</button>
-                    <button type="reset" class="btn-reset">Clear Form</button>
+                    <!-- Profession Field -->
+                    <div class="form-group">
+                        <label for="profession">Profession <span class="required">*</span></label>
+                        <input type="text" id="profession" name="profession" placeholder="e.g., Artist, Entrepreneur, Designer" required>
+                        <div class="form-hint">What do you do professionally?</div>
+                    </div>
+
+                    <!-- Instagram Handle Field -->
+                    <div class="form-group">
+                        <label for="instagram">Instagram Handle <span class="required">*</span></label>
+                        <input type="text" id="instagram" name="instagram" placeholder="@yourhandle" required>
+                        <div class="form-hint">Your Instagram username (include @)</div>
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <div class="button-container">
+                        <button type="button" class="btn-nav" id="prevBtn">← Previous</button>
+                        <button type="submit" class="btn-submit">Join the Circle</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -416,22 +564,206 @@
     <script>
         const form = document.getElementById('communityForm');
         const successMessage = document.getElementById('successMessage');
+        let currentPage = 1;
+        let map;
+        let marker;
+        let selectedLocation = null;
+        let searchTimeout;
 
         // Replace with your Google Apps Script Web App URL
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwiTTYPYr47Ri-2xdcJAIWuMDWcccOhEn7jXM2WkrFCBxBVIg7ofE4Yt2-o11SZjN0tdA/exec';
+
+        // Page Navigation
+        function showPage(pageNumber) {
+            // Hide all pages
+            document.querySelectorAll('.form-page').forEach(page => {
+                page.classList.remove('active');
+            });
+
+            // Show selected page
+            document.getElementById(`page${pageNumber}`).classList.add('active');
+
+            // Update page indicators
+            document.querySelectorAll('.page-dot').forEach((dot, index) => {
+                if (index + 1 === pageNumber) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+
+            currentPage = pageNumber;
+
+            // Initialize map when page 2 is shown
+            if (pageNumber === 2 && !map) {
+                initMap();
+            }
+        }
+
+        // Next button handler
+        document.getElementById('nextBtn').addEventListener('click', function() {
+            // Validate page 1 fields
+            const page1 = document.getElementById('page1');
+            const requiredFields = page1.querySelectorAll('[required]');
+            let isValid = true;
+
+            requiredFields.forEach(field => {
+                if (field.type === 'checkbox' || field.type === 'radio') {
+                    const group = document.querySelectorAll(`input[name="${field.name}"]`);
+                    const isChecked = Array.from(group).some(input => input.checked);
+                    if (!isChecked) {
+                        isValid = false;
+                        field.closest('.form-group').style.borderColor = '#e74c3c';
+                    } else {
+                        field.closest('.form-group').style.borderColor = '';
+                    }
+                } else if (!field.value.trim()) {
+                    isValid = false;
+                    field.style.borderColor = '#e74c3c';
+                } else {
+                    field.style.borderColor = '';
+                }
+            });
+
+            // Check at least one interest is selected
+            const interests = document.querySelectorAll('input[name="interests"]:checked');
+            if (interests.length === 0) {
+                alert('Please select at least one interest in the "Areas of Expertise" section.');
+                isValid = false;
+            }
+
+            if (isValid) {
+                showPage(2);
+            }
+        });
+
+        // Previous button handler
+        document.getElementById('prevBtn').addEventListener('click', function() {
+            showPage(1);
+        });
+
+        // Initialize Leaflet Map (OpenStreetMap - Free, no API key needed)
+        function initMap() {
+            // Default center (India)
+            const defaultCenter = [20.5937, 78.9629];
+
+            // Initialize map
+            map = L.map('map').setView(defaultCenter, 5);
+
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Initialize marker
+            marker = L.marker(defaultCenter, { draggable: true }).addTo(map);
+
+            // Search input handler with debounce
+            const searchInput = document.getElementById('locationSearch');
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                const query = this.value.trim();
+                
+                if (query.length > 2) {
+                    searchTimeout = setTimeout(() => {
+                        searchLocation(query);
+                    }, 500);
+                }
+            });
+
+            // Map click handler
+            map.on('click', function(e) {
+                marker.setLatLng(e.latlng);
+                reverseGeocode(e.latlng);
+            });
+
+            // Marker drag handler
+            marker.on('dragend', function(e) {
+                reverseGeocode(e.target.getLatLng());
+            });
+        }
+
+        // Search for location using Nominatim (OpenStreetMap geocoding)
+        function searchLocation(query) {
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        const result = data[0];
+                        const lat = parseFloat(result.lat);
+                        const lng = parseFloat(result.lon);
+                        const address = result.display_name;
+                        
+                        map.setView([lat, lng], 15);
+                        marker.setLatLng([lat, lng]);
+                        updateLocation([lat, lng], address);
+                    }
+                })
+                .catch(error => {
+                    console.error('Geocoding error:', error);
+                });
+        }
+
+        // Reverse geocode to get address from coordinates
+        function reverseGeocode(latlng) {
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&zoom=18&addressdetails=1`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.display_name) {
+                        updateLocation(latlng, data.display_name);
+                    } else {
+                        updateLocation(latlng, `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Reverse geocoding error:', error);
+                    updateLocation(latlng, `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`);
+                });
+        }
+
+        // Update location display and hidden fields
+        function updateLocation(latlng, address) {
+            const lat = Array.isArray(latlng) ? latlng[0] : latlng.lat;
+            const lng = Array.isArray(latlng) ? latlng[1] : latlng.lng;
+
+            selectedLocation = {
+                lat: lat,
+                lng: lng,
+                address: address
+            };
+
+            document.getElementById('locationDisplay').textContent = address;
+            document.getElementById('location').value = address;
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+            document.getElementById('locationSearch').value = address;
+        }
 
         // Form submission handler
         form.addEventListener('submit', function(e) {
             e.preventDefault();
 
+            // Validate page 2 fields
+            const address = document.getElementById('address').value.trim();
+            const location = document.getElementById('location').value.trim();
+            const profession = document.getElementById('profession').value.trim();
+            const instagram = document.getElementById('instagram').value.trim();
+
+            if (!address || !location || !profession || !instagram) {
+                alert('Please fill in all required fields on page 2.');
+                return;
+            }
+
             // Validate at least one interest is selected
             const interests = document.querySelectorAll('input[name="interests"]:checked');
             if (interests.length === 0) {
                 alert('Please select at least one interest in the "Areas of Expertise" section.');
+                showPage(1);
                 return;
             }
 
-            // Collect form data
+            // Collect form data from both pages
             const formData = {
                 name: document.getElementById('name').value,
                 contact: document.getElementById('contact').value,
@@ -440,6 +772,12 @@
                 royalCircle: document.getElementById('royalCircle').value,
                 projects: document.getElementById('projects').value,
                 interests: Array.from(interests).map(cb => cb.value).join(', '),
+                address: address,
+                location: location,
+                latitude: document.getElementById('latitude').value,
+                longitude: document.getElementById('longitude').value,
+                profession: profession,
+                instagram: instagram,
                 timestamp: new Date().toLocaleString()
             };
 
@@ -462,8 +800,13 @@
                 // Show success message
                 successMessage.classList.add('show');
                 
-                // Reset form
+                // Reset form and go back to page 1
                 form.reset();
+                showPage(1);
+                selectedLocation = null;
+                if (marker && map) {
+                    map.removeLayer(marker);
+                }
 
                 // Hide success message after 5 seconds
                 setTimeout(() => {
@@ -476,6 +819,11 @@
                 // Show success message anyway
                 successMessage.classList.add('show');
                 form.reset();
+                showPage(1);
+                selectedLocation = null;
+                if (marker && map) {
+                    map.removeLayer(marker);
+                }
                 setTimeout(() => {
                     successMessage.classList.remove('show');
                 }, 5000);
