@@ -372,13 +372,10 @@
             max-width: 300px;
             width: 100%;
             height: auto;
-            display: block;
+            display: block !important;
             margin: 0 auto;
-        }
-
-        .qr-code-container img[src=""],
-        .qr-code-container img:not([src]) {
-            display: none;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
 
         .qr-code-placeholder {
@@ -782,7 +779,9 @@
                         <p class="payment-info">Please scan the QR code below to make your payment</p>
                         
                         <div class="qr-code-container">
-                            <img src="payment-qr.png" alt="Payment QR Code" id="paymentQR" style="display: block; width: 100%; max-width: 300px; height: auto; margin: 0 auto;">
+                            <img src="./payment-qr.png" alt="Payment QR Code" id="paymentQR" 
+                                 onload="console.log('QR code image loaded successfully');" 
+                                 onerror="console.error('QR code image failed to load:', this.src); this.style.border='2px solid red'; this.alt='QR Code Image Not Found - Check payment-qr.png file';">
                         </div>
                         
                         <p class="payment-info">
@@ -853,6 +852,19 @@
             // Initialize map when page 2 is shown
             if (pageNumber === 2 && !map) {
                 initMap();
+            }
+
+            // Ensure QR code image loads when page 3 is shown
+            if (pageNumber === 3) {
+                const qrImage = document.getElementById('paymentQR');
+                if (qrImage) {
+                    // Force reload the image
+                    const currentSrc = qrImage.src;
+                    qrImage.src = '';
+                    setTimeout(() => {
+                        qrImage.src = currentSrc || './payment-qr.png';
+                    }, 100);
+                }
             }
         }
 
