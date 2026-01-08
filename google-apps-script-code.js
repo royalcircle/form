@@ -51,22 +51,22 @@ function doPost(e) {
       }
     }
     
-    // Add data to the sheet (includes all fields from all 3 pages)
+    // Add data to the sheet (original column order)
     sheet.appendRow([
       data.timestamp,
       data.name,
-      data.profession || '',
-      data.instagram || '',
+      data.contact || '',
+      data.locality || '',
+      data.fromJaipur || '',
       data.royalCircle,
       data.projects,
       data.interests,
       data.address || '',
-      data.contact || '',
-      data.locality || '',
-      data.fromJaipur || '',
       data.location || '',
       data.latitude || '',
       data.longitude || '',
+      data.profession || '',
+      data.instagram || '',
       paymentScreenshotUrl
     ]);
     

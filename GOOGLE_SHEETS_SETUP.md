@@ -8,18 +8,18 @@
 4. In the first row, add these column headers:
    - A1: `Timestamp`
    - B1: `Name`
-   - C1: `Profession`
-   - D1: `Instagram Handle`
-   - E1: `Heritage Connection`
-   - F1: `Projects`
-   - G1: `Areas of Expertise`
-   - H1: `Address`
-   - I1: `Contact`
-   - J1: `Locality`
-   - K1: `From Jaipur`
-   - L1: `Location`
-   - M1: `Latitude`
-   - N1: `Longitude`
+   - C1: `Contact`
+   - D1: `Locality`
+   - E1: `From Jaipur`
+   - F1: `Heritage Connection`
+   - G1: `Projects`
+   - H1: `Areas of Expertise`
+   - I1: `Address`
+   - J1: `Location`
+   - K1: `Latitude`
+   - L1: `Longitude`
+   - M1: `Profession`
+   - N1: `Instagram Handle`
    - O1: `Payment Screenshot URL`
 
 ## Step 2: Update Existing Sheet (If You Already Have One)
@@ -29,21 +29,21 @@
 If you already have a Google Sheet set up with the old columns, you need to update the columns:
 
 1. Open your existing Google Sheet
-2. Update column headers in row 1 to match the new order:
+2. Update column headers in row 1 to match the original order:
    - A1: `Timestamp`
    - B1: `Name`
-   - C1: `Profession`
-   - D1: `Instagram Handle`
-   - E1: `Heritage Connection`
-   - F1: `Projects`
-   - G1: `Areas of Expertise`
-   - H1: `Address`
-   - I1: `Contact`
-   - J1: `Locality`
-   - K1: `From Jaipur`
-   - L1: `Location`
-   - M1: `Latitude`
-   - N1: `Longitude`
+   - C1: `Contact`
+   - D1: `Locality`
+   - E1: `From Jaipur`
+   - F1: `Heritage Connection`
+   - G1: `Projects`
+   - H1: `Areas of Expertise`
+   - I1: `Address`
+   - J1: `Location`
+   - K1: `Latitude`
+   - L1: `Longitude`
+   - M1: `Profession`
+   - N1: `Instagram Handle`
    - O1: `Payment Screenshot URL` (NEW - add this column)
 3. Continue to Step 3 to update your Google Apps Script code
 
@@ -91,22 +91,22 @@ function doPost(e) {
       }
     }
     
-    // Add data to the sheet (includes all fields from all 3 pages)
+    // Add data to the sheet (original column order)
     sheet.appendRow([
       data.timestamp,
       data.name,
-      data.profession || '',
-      data.instagram || '',
+      data.contact || '',
+      data.locality || '',
+      data.fromJaipur || '',
       data.royalCircle,
       data.projects,
       data.interests,
       data.address || '',
-      data.contact || '',
-      data.locality || '',
-      data.fromJaipur || '',
       data.location || '',
       data.latitude || '',
       data.longitude || '',
+      data.profession || '',
+      data.instagram || '',
       paymentScreenshotUrl
     ]);
     
