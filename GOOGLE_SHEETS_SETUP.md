@@ -119,6 +119,24 @@ function doPost(e) {
 }
 ```
 
+## Step 4.5: Authorize Drive Permissions (IMPORTANT!)
+
+**⚠️ CRITICAL:** Before deploying, you must authorize the script to access Google Drive for file uploads.
+
+1. In the Script Editor, click **Run** → **Run function** → Select `doPost` (or just click the Run button)
+2. You'll see an **Authorization Required** dialog
+3. Click **Review Permissions**
+4. Select your Google account
+5. You'll see a warning - click **Advanced**
+6. Click **Go to [Your Project Name] (unsafe)**
+7. Click **Allow** to grant Drive permissions
+
+**Required Permissions:**
+- ✅ Google Sheets (to write data)
+- ✅ Google Drive (to upload payment screenshots)
+
+**Note:** If you skip this step, you'll get a "permission denied" error when users upload payment screenshots.
+
 ## Step 5: Deploy as Web App
 
 **⚠️ CRITICAL: You MUST redeploy after updating the script code, otherwise changes won't take effect!**

@@ -11,27 +11,43 @@ function doPost(e) {
         const base64Data = data.paymentScreenshot.split(',')[1] || data.paymentScreenshot;
         const blob = Utilities.newBlob(Utilities.base64Decode(base64Data), data.paymentScreenshotType || 'image/png', data.paymentScreenshotName);
         
-        // Create folder for payment screenshots if it doesn't exist
+        // Get or create folder for payment screenshots
         const folderName = 'Royal Circle Payment Screenshots';
         let folder;
-        const folders = DriveApp.getFoldersByName(folderName);
-        if (folders.hasNext()) {
-          folder = folders.next();
-        } else {
-          folder = DriveApp.createFolder(folderName);
+        
+        try {
+          // Try to find existing folder
+          const folders = DriveApp.getFoldersByName(folderName);
+          if (folders.hasNext()) {
+            folder = folders.next();
+          } else {
+            // Create new folder if it doesn't exist
+            folder = DriveApp.createFolder(folderName);
+          }
+          
+          // Upload file to Google Drive
+          const file = folder.createFile(blob);
+          
+          // Set file permissions to "Anyone with the link can view"
+          file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+          
+          // Get file URL
+          paymentScreenshotUrl = file.getUrl();
+        } catch(driveError) {
+          // If Drive access fails, try saving to the root Drive folder
+          try {
+            const file = DriveApp.createFile(blob);
+            file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+            paymentScreenshotUrl = file.getUrl();
+          } catch(rootError) {
+            // If that also fails, store error message
+            paymentScreenshotUrl = 'Drive access error - please authorize script with Drive permissions';
+            console.error('Drive error:', rootError);
+          }
         }
-        
-        // Upload file to Google Drive
-        const file = folder.createFile(blob);
-        
-        // Set file permissions to "Anyone with the link can view"
-        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-        
-        // Get file URL
-        paymentScreenshotUrl = file.getUrl();
       } catch(fileError) {
         console.error('File upload error:', fileError);
-        paymentScreenshotUrl = 'Error uploading file: ' + fileError.toString();
+        paymentScreenshotUrl = 'Error: ' + fileError.toString();
       }
     }
     
