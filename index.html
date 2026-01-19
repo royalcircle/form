@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="true">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Royal Circle">
+    <meta name="theme-color" content="#722f37">
     <title>The Royal Circle - Heritage & Creative Community</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Montserrat:wght@500&display=swap" rel="stylesheet">
     <!-- Leaflet CSS -->
@@ -557,6 +561,22 @@
             border: 1px solid #d4af37;
             border-radius: 4px;
             margin-top: 10px;
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        @media (max-width: 768px) {
+            #map {
+                height: 280px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #map {
+                height: 250px;
+            }
         }
 
         .map-search-container {
@@ -568,9 +588,26 @@
             padding: 12px 15px;
             border: 1px solid #d4af37;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: 16px;
             font-family: 'Montserrat', sans-serif;
             font-weight: 500;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-color: white;
+            -webkit-autofill-selected-background-color: rgba(212, 175, 55, 0.1);
+        }
+
+        .map-search-input:focus {
+            outline: none;
+            border-color: #722f37;
+            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
+        }
+
+        @supports (-webkit-touch-callout: none) {
+            .map-search-input {
+                font-size: 16px;
+            }
         }
 
         .location-display {
@@ -581,6 +618,9 @@
             font-size: 12px;
             color: #666;
             font-family: 'Montserrat', sans-serif;
+            word-break: break-word;
+            -webkit-user-select: text;
+            user-select: text;
         }
     </style>
 </head>
@@ -945,8 +985,23 @@
             // Default center (India)
             const defaultCenter = [20.5937, 78.9629];
 
-            // Initialize map
-            map = L.map('map').setView(defaultCenter, 5);
+            // Detect if device is touch-enabled
+            const isTouchDevice = () => {
+                return (('ontouchstart' in window) ||
+                        (navigator.maxTouchPoints > 0) ||
+                        (navigator.msMaxTouchPoints > 0));
+            };
+
+            // Initialize map with touch-friendly settings
+            map = L.map('map', {
+                zoomControl: true,
+                touchZoom: true,
+                tap: true,
+                tapTolerance: 25,
+                boxZoom: true,
+                dragging: true,
+                keyboard: true
+            }).setView(defaultCenter, 5);
 
             // Add OpenStreetMap tiles
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -954,37 +1009,84 @@
                 maxZoom: 19
             }).addTo(map);
 
-            // Initialize marker
-            marker = L.marker(defaultCenter, { draggable: true }).addTo(map);
+            // Initialize marker with touch-friendly settings
+            marker = L.marker(defaultCenter, { 
+                draggable: true,
+                keyboard: true
+            }).addTo(map);
 
-            // Search input handler with debounce
+            // Search input handler with iOS optimization
             const searchInput = document.getElementById('locationSearch');
+            let isSearching = false;
+
+            // Prevent auto-zoom on iOS when search is focused
+            searchInput.addEventListener('focus', function() {
+                if (isTouchDevice()) {
+                    document.body.style.zoom = '1';
+                }
+            });
+
             searchInput.addEventListener('input', function() {
                 clearTimeout(searchTimeout);
                 const query = this.value.trim();
                 
-                if (query.length > 2) {
+                if (query.length > 2 && !isSearching) {
                     searchTimeout = setTimeout(() => {
                         searchLocation(query);
                     }, 500);
                 }
             });
 
-            // Map click handler
+            // Handle search on Enter key
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    clearTimeout(searchTimeout);
+                    const query = this.value.trim();
+                    if (query.length > 2) {
+                        searchLocation(query);
+                    }
+                    this.blur();
+                }
+            });
+
+            // Map click handler with touch support
             map.on('click', function(e) {
-                marker.setLatLng(e.latlng);
-                reverseGeocode(e.latlng);
+                if (e.latlng) {
+                    marker.setLatLng(e.latlng);
+                    reverseGeocode(e.latlng);
+                }
             });
 
             // Marker drag handler
             marker.on('dragend', function(e) {
                 reverseGeocode(e.target.getLatLng());
             });
+
+            // Add touch-specific event handlers for iOS
+            if (isTouchDevice()) {
+                map.on('touchend', function(e) {
+                    if (e.latlng) {
+                        marker.setLatLng(e.latlng);
+                        reverseGeocode(e.latlng);
+                    }
+                });
+            }
+
+            // Invalidate size after map is fully loaded
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);
         }
 
         // Search for location using Nominatim (OpenStreetMap geocoding)
         function searchLocation(query) {
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`)
+            isSearching = true;
+            const searchInput = document.getElementById('locationSearch');
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`, {
+                signal: AbortSignal.timeout(10000)
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (data && data.length > 0) {
@@ -996,16 +1098,22 @@
                         map.setView([lat, lng], 15);
                         marker.setLatLng([lat, lng]);
                         updateLocation([lat, lng], address);
+                    } else {
+                        console.warn('No results found for:', query);
                     }
+                    isSearching = false;
                 })
                 .catch(error => {
                     console.error('Geocoding error:', error);
+                    isSearching = false;
                 });
         }
 
         // Reverse geocode to get address from coordinates
         function reverseGeocode(latlng) {
-            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&zoom=18&addressdetails=1`)
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&zoom=18&addressdetails=1`, {
+                signal: AbortSignal.timeout(10000)
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (data && data.display_name) {
@@ -1195,16 +1303,5 @@
             });
         }
 
-        // Enhanced interaction - add visual feedback on input focus
-        const inputs = document.querySelectorAll('input[type="text"], input[type="tel"], textarea');
-        inputs.forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'scale(1.02)';
-            });
-            input.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'scale(1)';
-            });
-        });
-    </script>
-</body>
-</html>
+        // Enhanced interaction - add visual feedback on input focus with iOS optimization
+n        const inputs = document.querySelectorAll('input[type=\"text\"], input[type=\"tel\"], textarea');\n        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);\n        \n        inputs.forEach(input => {\n            // Disable scale transform on iOS to prevent zoom issues\n            input.addEventListener('focus', function() {\n                if (!isSafari) {\n                    this.parentElement.style.transform = 'scale(1.02)';\n                }\n                this.style.fontSize = '16px';\n            });\n            input.addEventListener('blur', function() {\n                if (!isSafari) {\n                    this.parentElement.style.transform = 'scale(1)';\n                }\n            });\n        });\n\n        // Handle window resize for map on iOS orientation change\n        window.addEventListener('orientationchange', function() {\n            setTimeout(() => {\n                if (map) {\n                    map.invalidateSize();\n                }\n            }, 100);\n        });\n\n        // Prevent iOS safari zoom on double-tap for non-input elements\n        document.addEventListener('touchend', function(event) {\n            if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {\n                const allowedTags = ['A', 'BUTTON', 'SELECT', 'OPTION'];\n                if (!allowedTags.includes(event.target.tagName)) {\n                    event.preventDefault();\n                }\n            }\n        }, false);\n\n        // Fix for iOS form submission\n        window.addEventListener('beforeunload', function() {\n            document.querySelectorAll('input, textarea, select').forEach(el => {\n                el.blur();\n            });\n        });\n    </script>\n</body>\n</html>"
