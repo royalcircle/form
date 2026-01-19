@@ -1303,5 +1303,50 @@
             });
         }
 
-        // Enhanced interaction - add visual feedback on input focus with iOS optimization
-n        const inputs = document.querySelectorAll('input[type=\"text\"], input[type=\"tel\"], textarea');\n        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);\n        \n        inputs.forEach(input => {\n            // Disable scale transform on iOS to prevent zoom issues\n            input.addEventListener('focus', function() {\n                if (!isSafari) {\n                    this.parentElement.style.transform = 'scale(1.02)';\n                }\n                this.style.fontSize = '16px';\n            });\n            input.addEventListener('blur', function() {\n                if (!isSafari) {\n                    this.parentElement.style.transform = 'scale(1)';\n                }\n            });\n        });\n\n        // Handle window resize for map on iOS orientation change\n        window.addEventListener('orientationchange', function() {\n            setTimeout(() => {\n                if (map) {\n                    map.invalidateSize();\n                }\n            }, 100);\n        });\n\n        // Prevent iOS safari zoom on double-tap for non-input elements\n        document.addEventListener('touchend', function(event) {\n            if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {\n                const allowedTags = ['A', 'BUTTON', 'SELECT', 'OPTION'];\n                if (!allowedTags.includes(event.target.tagName)) {\n                    event.preventDefault();\n                }\n            }\n        }, false);\n\n        // Fix for iOS form submission\n        window.addEventListener('beforeunload', function() {\n            document.querySelectorAll('input, textarea, select').forEach(el => {\n                el.blur();\n            });\n        });\n    </script>\n</body>\n</html>"
+               // Enhanced interaction - add visual feedback on input focus with iOS optimization
+        const inputs = document.querySelectorAll('input[type="text"], input[type="tel"], textarea');
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                
+        inputs.forEach(input => {
+            // Disable scale transform on iOS to prevent zoom issues
+            input.addEventListener('focus', function() {
+                if (!isSafari) {
+                    this.parentElement.style.transform = 'scale(1.02)';
+                }
+                this.style.fontSize = '16px';
+            });
+            input.addEventListener('blur', function() {
+                if (!isSafari) {
+                    this.parentElement.style.transform = 'scale(1)';
+                }
+            });
+        });
+
+        // Handle window resize for map on iOS orientation change
+        window.addEventListener('orientationchange', function() {
+            setTimeout(() => {
+                if (map) {
+                    map.invalidateSize();
+                }
+            }, 100);
+        });
+
+        // Prevent iOS safari zoom on double-tap for non-input elements
+        document.addEventListener('touchend', function(event) {
+            if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
+                const allowedTags = ['A', 'BUTTON', 'SELECT', 'OPTION'];
+                if (!allowedTags.includes(event.target.tagName)) {
+                    event.preventDefault();
+                }
+            }
+        }, false);
+
+        // Fix for iOS form submission
+        window.addEventListener('beforeunload', function() {
+            document.querySelectorAll('input, textarea, select').forEach(el => {
+                el.blur();
+            });
+        });
+    </script>
+</body>
+</html>
