@@ -1040,7 +1040,7 @@
             });
         }
 
-               // Enhanced interaction - add visual feedback on input focus with iOS optimization
+        // Enhanced interaction - add visual feedback on input focus with iOS optimization
         const inputs = document.querySelectorAll('input[type="text"], input[type="tel"], textarea');
         const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
                 
@@ -1059,13 +1059,9 @@
             });
         });
 
-        // Handle window resize for map on iOS orientation change
+        // Handle window resize for iOS orientation change
         window.addEventListener('orientationchange', function() {
-            setTimeout(() => {
-                if (map) {
-                    map.invalidateSize();
-                }
-            }, 100);
+            // Handle orientation changes
         });
 
         // Prevent iOS safari zoom on double-tap for non-input elements
