@@ -9,10 +9,6 @@
     <meta name="theme-color" content="#722f37">
     <title>The Royal Circle - Heritage & Creative Community</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Montserrat:wght@500&display=swap" rel="stylesheet">
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * {
             margin: 0;
@@ -553,75 +549,6 @@
             cursor: not-allowed;
             transform: none;
         }
-
-        /* Map Container (Leaflet/OpenStreetMap) */
-        #map {
-            width: 100%;
-            height: 300px;
-            border: 1px solid #d4af37;
-            border-radius: 4px;
-            margin-top: 10px;
-            touch-action: manipulation;
-            -webkit-user-select: none;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        @media (max-width: 768px) {
-            #map {
-                height: 280px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            #map {
-                height: 250px;
-            }
-        }
-
-        .map-search-container {
-            margin-bottom: 10px;
-        }
-
-        .map-search-input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #d4af37;
-            border-radius: 4px;
-            font-size: 16px;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 500;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-color: white;
-            -webkit-autofill-selected-background-color: rgba(212, 175, 55, 0.1);
-        }
-
-        .map-search-input:focus {
-            outline: none;
-            border-color: #722f37;
-            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
-        }
-
-        @supports (-webkit-touch-callout: none) {
-            .map-search-input {
-                font-size: 16px;
-            }
-        }
-
-        .location-display {
-            margin-top: 10px;
-            padding: 10px;
-            background: #f8f8f8;
-            border-radius: 4px;
-            font-size: 12px;
-            color: #666;
-            font-family: 'Montserrat', sans-serif;
-            word-break: break-word;
-            -webkit-user-select: text;
-            user-select: text;
-        }
     </style>
 </head>
 <body>
@@ -779,17 +706,10 @@
                         </div>
                     </div>
 
-                    <!-- Location with Map -->
+                    <!-- Location -->
                     <div class="form-group">
                         <label for="location">Your Location <span class="required">*</span></label>
-                        <div class="map-search-container">
-                            <input type="text" id="locationSearch" class="map-search-input" placeholder="Search for a location or click on the map">
-                        </div>
-                        <div id="map"></div>
-                        <div class="location-display" id="locationDisplay">Click on the map or search to select your location</div>
-                        <input type="hidden" id="location" name="location" required>
-                        <input type="hidden" id="latitude" name="latitude">
-                        <input type="hidden" id="longitude" name="longitude">
+                        <input type="text" id="location" name="location" placeholder="Enter your location" required>
                     </div>
 
                     <!-- Navigation Buttons -->
@@ -877,11 +797,6 @@
 
             currentPage = pageNumber;
 
-            // Initialize map when page 2 is shown
-            if (pageNumber === 2 && !map) {
-                initMap();
-            }
-
             // Ensure QR code image loads when page 3 is shown
             if (pageNumber === 3) {
                 const qrImage = document.getElementById('paymentQR');
@@ -966,7 +881,7 @@
             // Check location is selected
             const location = document.getElementById('location').value.trim();
             if (!location) {
-                alert('Please select your location on the map.');
+                alert('Please enter your location.');
                 isValid = false;
             }
 
@@ -980,171 +895,7 @@
             showPage(2);
         });
 
-        // Initialize Leaflet Map (OpenStreetMap - Free, no API key needed)
-        function initMap() {
-            // Default center (India)
-            const defaultCenter = [20.5937, 78.9629];
 
-            // Detect if device is touch-enabled
-            const isTouchDevice = () => {
-                return (('ontouchstart' in window) ||
-                        (navigator.maxTouchPoints > 0) ||
-                        (navigator.msMaxTouchPoints > 0));
-            };
-
-            // Initialize map with touch-friendly settings
-            map = L.map('map', {
-                zoomControl: true,
-                touchZoom: true,
-                tap: true,
-                tapTolerance: 25,
-                boxZoom: true,
-                dragging: true,
-                keyboard: true
-            }).setView(defaultCenter, 5);
-
-            // Add OpenStreetMap tiles
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors',
-                maxZoom: 19
-            }).addTo(map);
-
-            // Initialize marker with touch-friendly settings
-            marker = L.marker(defaultCenter, { 
-                draggable: true,
-                keyboard: true
-            }).addTo(map);
-
-            // Search input handler with iOS optimization
-            const searchInput = document.getElementById('locationSearch');
-            let isSearching = false;
-
-            // Prevent auto-zoom on iOS when search is focused
-            searchInput.addEventListener('focus', function() {
-                if (isTouchDevice()) {
-                    document.body.style.zoom = '1';
-                }
-            });
-
-            searchInput.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                const query = this.value.trim();
-                
-                if (query.length > 2 && !isSearching) {
-                    searchTimeout = setTimeout(() => {
-                        searchLocation(query);
-                    }, 500);
-                }
-            });
-
-            // Handle search on Enter key
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    clearTimeout(searchTimeout);
-                    const query = this.value.trim();
-                    if (query.length > 2) {
-                        searchLocation(query);
-                    }
-                    this.blur();
-                }
-            });
-
-            // Map click handler with touch support
-            map.on('click', function(e) {
-                if (e.latlng) {
-                    marker.setLatLng(e.latlng);
-                    reverseGeocode(e.latlng);
-                }
-            });
-
-            // Marker drag handler
-            marker.on('dragend', function(e) {
-                reverseGeocode(e.target.getLatLng());
-            });
-
-            // Add touch-specific event handlers for iOS
-            if (isTouchDevice()) {
-                map.on('touchend', function(e) {
-                    if (e.latlng) {
-                        marker.setLatLng(e.latlng);
-                        reverseGeocode(e.latlng);
-                    }
-                });
-            }
-
-            // Invalidate size after map is fully loaded
-            setTimeout(() => {
-                map.invalidateSize();
-            }, 100);
-        }
-
-        // Search for location using Nominatim (OpenStreetMap geocoding)
-        function searchLocation(query) {
-            isSearching = true;
-            const searchInput = document.getElementById('locationSearch');
-
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`, {
-                signal: AbortSignal.timeout(10000)
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data.length > 0) {
-                        const result = data[0];
-                        const lat = parseFloat(result.lat);
-                        const lng = parseFloat(result.lon);
-                        const address = result.display_name;
-                        
-                        map.setView([lat, lng], 15);
-                        marker.setLatLng([lat, lng]);
-                        updateLocation([lat, lng], address);
-                    } else {
-                        console.warn('No results found for:', query);
-                    }
-                    isSearching = false;
-                })
-                .catch(error => {
-                    console.error('Geocoding error:', error);
-                    isSearching = false;
-                });
-        }
-
-        // Reverse geocode to get address from coordinates
-        function reverseGeocode(latlng) {
-            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&zoom=18&addressdetails=1`, {
-                signal: AbortSignal.timeout(10000)
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data.display_name) {
-                        updateLocation(latlng, data.display_name);
-                    } else {
-                        updateLocation(latlng, `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`);
-                    }
-                })
-                .catch(error => {
-                    console.error('Reverse geocoding error:', error);
-                    updateLocation(latlng, `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`);
-                });
-        }
-
-        // Update location display and hidden fields
-        function updateLocation(latlng, address) {
-            const lat = Array.isArray(latlng) ? latlng[0] : latlng.lat;
-            const lng = Array.isArray(latlng) ? latlng[1] : latlng.lng;
-
-            selectedLocation = {
-                lat: lat,
-                lng: lng,
-                address: address
-            };
-
-            document.getElementById('locationDisplay').textContent = address;
-            document.getElementById('location').value = address;
-            document.getElementById('latitude').value = lat;
-            document.getElementById('longitude').value = lng;
-            document.getElementById('locationSearch').value = address;
-        }
 
         // File upload preview handler
         const fileInput = document.getElementById('paymentScreenshot');
@@ -1236,8 +987,6 @@
                     locality: locality,
                     fromJaipur: fromJaipur.value,
                     location: location,
-                    latitude: document.getElementById('latitude').value,
-                    longitude: document.getElementById('longitude').value,
                     paymentScreenshot: fileBase64,
                     paymentScreenshotName: paymentScreenshot.name,
                     paymentScreenshotType: paymentScreenshot.type,
@@ -1281,10 +1030,6 @@
                 // Reset form data
                 form.reset();
                 showPage(1);
-                selectedLocation = null;
-                if (marker && map) {
-                    map.removeLayer(marker);
-                }
 
                 // Show thank you screen
                 showThankYouScreen();
@@ -1295,9 +1040,6 @@
                 // Show thank you screen anyway
                 form.reset();
                 showPage(1);
-                selectedLocation = null;
-                if (marker && map) {
-                    map.removeLayer(marker);
                 }
                 showThankYouScreen();
             });

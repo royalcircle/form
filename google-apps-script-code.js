@@ -63,8 +63,6 @@ function doPost(e) {
       data.interests,
       data.address || '',
       data.location || '',
-      data.latitude || '',
-      data.longitude || '',
       data.profession || '',
       data.instagram || '',
       paymentScreenshotUrl
